@@ -1,6 +1,7 @@
 package com.example.registerservice.service;
 
 import com.example.registerservice.entity.User;
+import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -15,15 +16,31 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
+    private OwnerRepository ownerRepository;
+
+    @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public User saveUser(User user){
-        user.setCreatedAt(LocalDateTime.now());
+    public String saveUser(User user){
 
-        String password = user.getPassword();
-        String encryptedPassword = bCryptPasswordEncoder.encode(password);
-        user.setPassword(encryptedPassword);
+        boolean isOwnerExist = ownerRepository.existsByEmail(user.getEmail());
 
-        return userRepository.save(user);
+        boolean isUserExist = userRepository.existsByEmail(user.getEmail());
+
+        if(!isOwnerExist && !isUserExist) {
+            user.setCreatedAt(LocalDateTime.now());
+
+            String password = user.getPassword();
+            String encryptedPassword = bCryptPasswordEncoder.encode(password);
+            user.setPassword(encryptedPassword);
+
+            userRepository.save(user);
+
+            return "User saved successfully";
+
+        }
+        else {
+            return "Email already exist";
+        }
     }
 }

@@ -16,7 +16,7 @@ public class OwnerController {
     private OwnerService ownerService;
 
     @RequestMapping(value = "/register" , method = RequestMethod.POST)
-    public Owner saveOwner(@RequestBody Owner owner){
+    public String saveOwner(@RequestBody Owner owner){
         return ownerService.saveOwner(owner);
     }
 }
