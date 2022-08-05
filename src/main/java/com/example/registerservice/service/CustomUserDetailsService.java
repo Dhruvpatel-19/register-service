@@ -4,14 +4,11 @@ import com.example.registerservice.entity.Owner;
 import com.example.registerservice.entity.User;
 import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
-import org.apache.catalina.realm.UserDatabaseRealm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
