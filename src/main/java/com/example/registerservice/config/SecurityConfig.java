@@ -23,7 +23,7 @@ public class SecurityConfig {
 
         http
                .authorizeRequests()
-               .antMatchers("/owner/register" , "/user/register").permitAll()
+               .antMatchers("/registerService/owner/register" , "/registerService/user/register").permitAll()
                .anyRequest()
                .authenticated()
                .and()

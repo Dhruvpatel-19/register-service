@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value = "/owner")
+@RequestMapping(value = "/registerService/owner")
 public class OwnerController {
 
     @Autowired
