@@ -4,8 +4,11 @@ import com.example.registerservice.entity.Owner;
 import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +24,9 @@ public class OwnerService{
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     public String saveOwner(Owner owner){
 
         boolean isOwnerExist = ownerRepository.existsByEmail(owner.getEmail());
@@ -35,6 +41,10 @@ public class OwnerService{
             owner.setPassword(encryptedPassword);
 
             ownerRepository.save(owner);
+
+            HttpEntity<Owner> ownerObj = new HttpEntity<>(owner);
+            //ResponseEntity<String> ownerRegisteredResponse =  restTemplate.postForEntity("http://localhost:8084/callWelcomeService/owner/register" , ownerObj , String.class);
+            restTemplate.postForEntity("http://localhost:8084/callWelcomeService/owner/register" , ownerObj , String.class);
 
             return "Owner added successfuly";
         }

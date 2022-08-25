@@ -4,8 +4,11 @@ import com.example.registerservice.entity.User;
 import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +24,9 @@ public class UserService {
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     public String saveUser(User user){
 
         boolean isOwnerExist = ownerRepository.existsByEmail(user.getEmail());
@@ -35,6 +41,10 @@ public class UserService {
             user.setPassword(encryptedPassword);
 
             userRepository.save(user);
+
+            HttpEntity<User> userObj = new HttpEntity<>(user);
+            //ResponseEntity<String> userRegisteredResponse = restTemplate.postForEntity("http://localhost:8084/callWelcomeService/user/register" , userObj , String.class);
+            restTemplate.postForEntity("http://localhost:8084/callWelcomeService/user/register" , userObj , String.class);
 
             return "User saved successfully";
 
