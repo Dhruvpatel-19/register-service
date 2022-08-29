@@ -5,14 +5,15 @@ import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 
 @Service
+@Transactional
 public class UserService {
 
     @Autowired
@@ -40,11 +41,11 @@ public class UserService {
             String encryptedPassword = bCryptPasswordEncoder.encode(password);
             user.setPassword(encryptedPassword);
 
-            userRepository.save(user);
-
             HttpEntity<User> userObj = new HttpEntity<>(user);
             //ResponseEntity<String> userRegisteredResponse = restTemplate.postForEntity("http://localhost:8084/callWelcomeService/user/register" , userObj , String.class);
             restTemplate.postForEntity("http://localhost:8084/callWelcomeService/user/register" , userObj , String.class);
+
+            userRepository.save(user);
 
             return "User saved successfully";
 

@@ -5,7 +5,6 @@ import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -40,11 +39,11 @@ public class OwnerService{
             String encryptedPassword = bCryptPasswordEncoder.encode(password);
             owner.setPassword(encryptedPassword);
 
-            ownerRepository.save(owner);
-
             HttpEntity<Owner> ownerObj = new HttpEntity<>(owner);
             //ResponseEntity<String> ownerRegisteredResponse =  restTemplate.postForEntity("http://localhost:8084/callWelcomeService/owner/register" , ownerObj , String.class);
-            restTemplate.postForEntity("http://localhost:8084/callWelcomeService/owner/register" , ownerObj , String.class);
+            restTemplate.postForEntity("http://localhost:8085/callPostService/owner/register" , ownerObj , String.class);
+
+            ownerRepository.save(owner);
 
             return "Owner added successfuly";
         }
