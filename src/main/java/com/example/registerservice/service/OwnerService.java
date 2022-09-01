@@ -2,6 +2,7 @@ package com.example.registerservice.service;
 
 import com.example.registerservice.dto.UpdateDTO;
 import com.example.registerservice.entity.Owner;
+import com.example.registerservice.entity.User;
 import com.example.registerservice.jwt.JwtUtil;
 import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
@@ -62,6 +63,21 @@ public class OwnerService{
     }
 
     public String updateOwner(HttpServletRequest request, UpdateDTO updateDTO) throws Exception {
+        Owner owner = (Owner) getOwnerOrUser(request);
+        if(owner!=null){
+            owner.setFirstName(updateDTO.getFirstName());
+            owner.setLastName(updateDTO.getLastName());
+            owner.setMobileNumber(updateDTO.getMobileNumber());
+
+            HttpEntity<Owner> ownerObj = new HttpEntity<>(owner);
+            restTemplate.exchange("http://localhost:8085/callPostService/owner/update/"+owner.getOwnerId() , HttpMethod.PUT , ownerObj , String.class);
+            ownerRepository.save(owner);
+            return "Owner updated successfully";
+        }
+        return "Some error occured while updateProfile for Owner";
+    }
+
+    private Object getOwnerOrUser(HttpServletRequest request) throws Exception {
         String requestTokenHeader = request.getHeader("Authorization");
         String jwtToken = null;
         String email = null;
@@ -73,18 +89,14 @@ public class OwnerService{
             }catch (Exception e){
                 throw new Exception("User not found");
             }
-            System.out.println("Email : "+email);
+
+            User user = userRepository.findByEmail(email);
             Owner owner = ownerRepository.findByEmail(email);
-            owner.setFirstName(updateDTO.getFirstName());
-            owner.setLastName(updateDTO.getLastName());
-            owner.setMobileNumber(updateDTO.getMobileNumber());
-
-            HttpEntity<Owner> ownerObj = new HttpEntity<>(owner);
-            restTemplate.exchange("http://localhost:8085/callPostService/owner/update/"+owner.getOwnerId() , HttpMethod.PUT , ownerObj , String.class);
-            ownerRepository.save(owner);
-
-            return "Owner updated successfully";
+            if(user!=null)
+                return user;
+            else
+                return owner;
         }
-        return "Some error occured while updateProfile for Owner";
+        return null;
     }
 }

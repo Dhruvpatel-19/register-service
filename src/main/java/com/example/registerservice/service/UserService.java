@@ -1,6 +1,7 @@
 package com.example.registerservice.service;
 
 import com.example.registerservice.dto.UpdateDTO;
+import com.example.registerservice.entity.Owner;
 import com.example.registerservice.entity.User;
 import com.example.registerservice.jwt.JwtUtil;
 import com.example.registerservice.repository.OwnerRepository;
@@ -63,19 +64,8 @@ public class UserService {
     }
 
     public String updateUser(HttpServletRequest request , UpdateDTO updateUserDTO) throws Exception {
-        String requestTokenHeader = request.getHeader("Authorization");
-        String jwtToken = null;
-        String email = null;
-        System.out.println("requestTokenHeader : "+requestTokenHeader);
-        if(requestTokenHeader!=null && requestTokenHeader.startsWith("Bearer ")){
-            jwtToken = requestTokenHeader.substring(7);
-            try {
-                email = jwtUtil.extractUsername(jwtToken);
-            }catch (Exception e){
-                throw new Exception("User not found");
-            }
-            System.out.println("Email : "+email);
-            User user = userRepository.findByEmail(email);
+        User user = (User) getOwnerOrUser(request);
+        if(user!=null){
             user.setFirstName(updateUserDTO.getFirstName());
             user.setLastName(updateUserDTO.getLastName());
             user.setMobileNumber(updateUserDTO.getMobileNumber());
@@ -87,5 +77,27 @@ public class UserService {
             return "User updated successfully";
         }
         return "Some error occured while updateProfile for User";
+    }
+    private Object getOwnerOrUser(HttpServletRequest request) throws Exception {
+        String requestTokenHeader = request.getHeader("Authorization");
+        String jwtToken = null;
+        String email = null;
+
+        if(requestTokenHeader!=null && requestTokenHeader.startsWith("Bearer ")){
+            jwtToken = requestTokenHeader.substring(7);
+            try {
+                email = jwtUtil.extractUsername(jwtToken);
+            }catch (Exception e){
+                throw new Exception("User not found");
+            }
+
+            User user = userRepository.findByEmail(email);
+            Owner owner = ownerRepository.findByEmail(email);
+            if(user!=null)
+                return user;
+            else
+                return owner;
+        }
+        return null;
     }
 }
