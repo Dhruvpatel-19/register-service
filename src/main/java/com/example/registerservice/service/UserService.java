@@ -3,6 +3,7 @@ package com.example.registerservice.service;
 import com.example.registerservice.dto.UpdateDTO;
 import com.example.registerservice.entity.Owner;
 import com.example.registerservice.entity.User;
+import com.example.registerservice.exception.UserNotFoundException;
 import com.example.registerservice.jwt.JwtUtil;
 import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
@@ -65,7 +66,7 @@ public class UserService {
 
     public String updateUser(HttpServletRequest request , UpdateDTO updateUserDTO) throws Exception {
         User user = (User) getOwnerOrUser(request);
-        if(user!=null){
+        if (user==null) throw new UserNotFoundException();
             user.setFirstName(updateUserDTO.getFirstName());
             user.setLastName(updateUserDTO.getLastName());
             user.setMobileNumber(updateUserDTO.getMobileNumber());
@@ -75,8 +76,6 @@ public class UserService {
             userRepository.save(user);
 
             return "User updated successfully";
-        }
-        return "Some error occured while updateProfile for User";
     }
     private Object getOwnerOrUser(HttpServletRequest request) throws Exception {
         String requestTokenHeader = request.getHeader("Authorization");
