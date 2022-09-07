@@ -33,8 +33,8 @@ public class SecurityConfig {
         http
                .authorizeRequests()
                .antMatchers("/registerService/owner/register" , "/registerService/user/register").permitAll()
-                .antMatchers("/registerService/owner/update").hasRole("OWNER")
-                .antMatchers("/registerService/user/update").hasRole("USER")
+                .antMatchers("/registerService/owner/update" , "/registerService/owner/delete").hasRole("OWNER")
+                .antMatchers("/registerService/user/update" , "/registerService/user/delete").hasRole("USER")
                .anyRequest()
                .authenticated()
                 .and()

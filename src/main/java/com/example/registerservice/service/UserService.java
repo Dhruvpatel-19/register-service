@@ -3,10 +3,15 @@ package com.example.registerservice.service;
 import com.example.registerservice.dto.UpdateDTO;
 import com.example.registerservice.entity.Owner;
 import com.example.registerservice.entity.User;
+import com.example.registerservice.exception.JwtSignatureException;
+import com.example.registerservice.exception.JwtTokenExpiredException;
 import com.example.registerservice.exception.UserNotFoundException;
 import com.example.registerservice.jwt.JwtUtil;
 import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -66,32 +71,54 @@ public class UserService {
 
     public String updateUser(HttpServletRequest request , UpdateDTO updateUserDTO) throws Exception {
         User user = (User) getOwnerOrUser(request);
-        if (user==null) throw new UserNotFoundException();
-            user.setFirstName(updateUserDTO.getFirstName());
-            user.setLastName(updateUserDTO.getLastName());
-            user.setMobileNumber(updateUserDTO.getMobileNumber());
+        if (user==null)
+            throw new UserNotFoundException();
 
-            HttpEntity<User> userObj = new HttpEntity<>(user);
-            restTemplate.exchange("http://localhost:8084/callWelcomeService/user/update/"+user.getUserId(), HttpMethod.PUT  , userObj , String.class);
-            userRepository.save(user);
+        user.setFirstName(updateUserDTO.getFirstName());
+        user.setLastName(updateUserDTO.getLastName());
+        user.setMobileNumber(updateUserDTO.getMobileNumber());
 
-            return "User updated successfully";
+        HttpEntity<User> userObj = new HttpEntity<>(user);
+        restTemplate.exchange("http://localhost:8084/callWelcomeService/user/update/"+user.getUserId(), HttpMethod.PUT  , userObj , String.class);
+        userRepository.save(user);
+
+        return "User updated successfully";
     }
-    private Object getOwnerOrUser(HttpServletRequest request) throws Exception {
+
+    public void deleteUser(int userId){
+        User user = userRepository.findById(userId).orElse(null);
+
+        if(user==null)
+            throw new UserNotFoundException();
+
+        restTemplate.delete("http://localhost:8084/callWelcomeService/user/delete/"+userId);
+        userRepository.deleteById(userId);
+    }
+
+    private Object getOwnerOrUser(HttpServletRequest request){
         String requestTokenHeader = request.getHeader("Authorization");
         String jwtToken = null;
         String email = null;
 
         if(requestTokenHeader!=null && requestTokenHeader.startsWith("Bearer ")){
             jwtToken = requestTokenHeader.substring(7);
-            try {
+
+            try{
                 email = jwtUtil.extractUsername(jwtToken);
-            }catch (Exception e){
-                throw new Exception("User not found");
+            }catch (ExpiredJwtException e){
+                throw new JwtTokenExpiredException();
+            }catch (SignatureException | MalformedJwtException e){
+                throw new JwtSignatureException();
+            } catch (Exception e){
+                return null;
             }
 
             User user = userRepository.findByEmail(email);
             Owner owner = ownerRepository.findByEmail(email);
+
+            if(user == null && owner==null)
+                return null;
+
             if(user!=null)
                 return user;
             else

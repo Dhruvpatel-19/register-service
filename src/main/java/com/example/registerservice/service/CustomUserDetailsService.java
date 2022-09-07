@@ -2,7 +2,6 @@ package com.example.registerservice.service;
 
 import com.example.registerservice.entity.Owner;
 import com.example.registerservice.entity.User;
-import com.example.registerservice.exception.OwnerNotFoundException;
 import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;

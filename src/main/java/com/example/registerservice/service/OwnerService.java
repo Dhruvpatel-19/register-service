@@ -3,10 +3,15 @@ package com.example.registerservice.service;
 import com.example.registerservice.dto.UpdateDTO;
 import com.example.registerservice.entity.Owner;
 import com.example.registerservice.entity.User;
+import com.example.registerservice.exception.JwtSignatureException;
+import com.example.registerservice.exception.JwtTokenExpiredException;
 import com.example.registerservice.exception.OwnerNotFoundException;
 import com.example.registerservice.jwt.JwtUtil;
 import com.example.registerservice.repository.OwnerRepository;
 import com.example.registerservice.repository.UserRepository;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -63,7 +68,7 @@ public class OwnerService{
         }
     }
 
-    public String updateOwner(HttpServletRequest request, UpdateDTO updateDTO) throws Exception {
+    public String updateOwner(HttpServletRequest request, UpdateDTO updateDTO)  {
         Owner owner = (Owner) getOwnerOrUser(request);
         if (owner ==null) throw new OwnerNotFoundException();
 
@@ -78,21 +83,39 @@ public class OwnerService{
 
     }
 
-    private Object getOwnerOrUser(HttpServletRequest request) throws Exception {
+    public void deleteOwner(int ownerId){
+        Owner owner = ownerRepository.findById(ownerId).orElse(null);
+
+        if(owner == null)
+            throw new OwnerNotFoundException();
+
+        restTemplate.delete("http://localhost:8085/callPostService/owner/delete/"+ownerId);
+        ownerRepository.deleteById(ownerId);
+    }
+    private Object getOwnerOrUser(HttpServletRequest request){
         String requestTokenHeader = request.getHeader("Authorization");
         String jwtToken = null;
         String email = null;
 
         if(requestTokenHeader!=null && requestTokenHeader.startsWith("Bearer ")){
             jwtToken = requestTokenHeader.substring(7);
-            try {
+
+            try{
                 email = jwtUtil.extractUsername(jwtToken);
-            }catch (Exception e){
-                throw new Exception("User not found");
+            }catch (ExpiredJwtException e){
+                throw new JwtTokenExpiredException();
+            }catch (SignatureException | MalformedJwtException e){
+                throw new JwtSignatureException();
+            } catch (Exception e){
+                return null;
             }
 
             User user = userRepository.findByEmail(email);
             Owner owner = ownerRepository.findByEmail(email);
+
+            if(user == null && owner==null)
+                return null;
+
             if(user!=null)
                 return user;
             else
